@@ -1,0 +1,23 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: ollive-migrate
+  annotations:
+    # Run migrations on every install/upgrade, before the app rolls out.
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-weight": "-5"
+    "helm.sh/hook-delete-policy": before-hook-creation
+spec:
+  backoffLimit: 5
+  template:
+    metadata:
+      labels: { app: ollive-migrate }
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: migrate
+          image: "{{ .Values.image.ingestion }}"
+          imagePullPolicy: "{{ .Values.image.pullPolicy }}"
+          command: ["node", "packages/db/dist/migrate.js"]
+          envFrom:
+            - configMapRef: { name: ollive-config }

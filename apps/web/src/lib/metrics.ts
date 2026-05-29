@@ -4,20 +4,15 @@ import { getDb } from '@ollive/db';
 // Time-range filter for the dashboards.
 export type Range = '1h' | '24h' | 'all';
 
-function sinceClause(range: Range) {
-  if (range === '1h') return sql`where created_at > now() - interval '1 hour'`;
-  if (range === '24h') return sql`where created_at > now() - interval '24 hours'`;
-  return sql``;
-}
-function andStatus(range: Range, status: string) {
-  const base = range === 'all' ? sql`where` : sql`and`;
-  const since =
-    range === '1h'
-      ? sql`created_at > now() - interval '1 hour' and`
-      : range === '24h'
-        ? sql`created_at > now() - interval '24 hours' and`
-        : sql``;
-  return sql`${base} ${since} status = ${status}`;
+// Build a correct WHERE clause from the range plus any extra conditions, joined with AND.
+// Always emits a leading `where` (or nothing when there are no conditions) — never a stray `and`.
+function whereRange(range: Range, extra?: ReturnType<typeof sql>) {
+  const conds: Array<ReturnType<typeof sql>> = [];
+  if (range === '1h') conds.push(sql`created_at > now() - interval '1 hour'`);
+  else if (range === '24h') conds.push(sql`created_at > now() - interval '24 hours'`);
+  if (extra) conds.push(extra);
+  if (conds.length === 0) return sql``;
+  return sql`where ${sql.join(conds, sql` and `)}`;
 }
 
 function n(v: unknown): number {
@@ -35,7 +30,7 @@ export interface Summary {
 
 export async function getSummary(range: Range): Promise<Summary> {
   const db = getDb();
-  const where = sinceClause(range);
+  const where = whereRange(range);
   const rows = (await db.execute(sql`
     select
       count(*) as total_requests,
@@ -74,7 +69,7 @@ export async function getLatencySeries(range: Range): Promise<LatencyPoint[]> {
       percentile_cont(0.95) within group (order by latency_ms) as p95,
       percentile_cont(0.99) within group (order by latency_ms) as p99
     from inference_logs
-    ${andStatus(range, 'success')}
+    ${whereRange(range, sql`status = 'success'`)}
     group by 1
     order by 1
   `)) as unknown as Array<Record<string, unknown>>;
@@ -94,7 +89,7 @@ export interface ThroughputPoint {
 
 export async function getThroughputSeries(range: Range): Promise<ThroughputPoint[]> {
   const db = getDb();
-  const where = sinceClause(range);
+  const where = whereRange(range);
   const rows = (await db.execute(sql`
     select
       to_char(date_trunc('minute', created_at), 'HH24:MI') as minute,
@@ -116,7 +111,7 @@ export interface ProviderTokens {
 
 export async function getProviderBreakdown(range: Range): Promise<ProviderTokens[]> {
   const db = getDb();
-  const where = sinceClause(range);
+  const where = whereRange(range);
   const rows = (await db.execute(sql`
     select provider,
       coalesce(sum(total_tokens) filter (where total_tokens is not null), 0) as tokens,

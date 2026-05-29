@@ -1,0 +1,22 @@
+# Images are built locally and loaded into the kind/minikube node (see infra/k8s/README.md).
+image:
+  ingestion: ollive-ingestion:latest
+  web: ollive-web:latest
+  pullPolicy: IfNotPresent
+
+# Set on install:  helm install ollive ./infra/k8s/helm --set openrouterApiKey=sk-or-...
+openrouterApiKey: ''
+
+redactPII: 'true'
+defaultModel: openai/gpt-4o-mini
+
+postgres:
+  user: ollive
+  password: ollive
+  db: ollive
+  storage: 1Gi
+
+web:
+  port: 3000
+ingestion:
+  port: 4000

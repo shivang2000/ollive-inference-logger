@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ollive-config
+data:
+  DATABASE_URL: postgres://{{ .Values.postgres.user }}:{{ .Values.postgres.password }}@ollive-postgres:5432/{{ .Values.postgres.db }}
+  REDIS_URL: redis://ollive-redis:6379
+  INGESTION_URL: http://ollive-ingestion-api:{{ .Values.ingestion.port }}
+  INGESTION_PORT: "{{ .Values.ingestion.port }}"
+  REDACT_PII: "{{ .Values.redactPII }}"
+  DEFAULT_MODEL: "{{ .Values.defaultModel }}"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: ollive-secrets
+type: Opaque
+stringData:
+  OPENROUTER_API_KEY: "{{ .Values.openrouterApiKey }}"

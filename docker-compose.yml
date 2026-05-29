@@ -1,0 +1,92 @@
+# One-command full stack:  cp .env.example .env  (set OPENROUTER_API_KEY)  &&  docker compose up --build
+#
+# Host ports are configurable (defaults match .env.example) to avoid clashes; in-container the
+# services always reach each other by name (postgres:5432, redis:6379, ingestion-api:4000).
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: ollive
+      POSTGRES_PASSWORD: ollive
+      POSTGRES_DB: ollive
+    ports:
+      - '${POSTGRES_PORT:-5432}:5432'
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ollive']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - '${REDIS_PORT:-6379}:6379'
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # Runs migrations once, then exits. API/worker/web wait for it to complete.
+  migrate:
+    build: { context: ., dockerfile: Dockerfile, target: ingestion }
+    command: ['node', 'packages/db/dist/migrate.js']
+    environment:
+      DATABASE_URL: postgres://ollive:ollive@postgres:5432/ollive
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: 'no'
+
+  ingestion-api:
+    build: { context: ., dockerfile: Dockerfile, target: ingestion }
+    command: ['node', 'apps/ingestion/dist/index.js']
+    environment:
+      DATABASE_URL: postgres://ollive:ollive@postgres:5432/ollive
+      REDIS_URL: redis://redis:6379
+      REDACT_PII: ${REDACT_PII:-true}
+      INGESTION_PORT: '4000'
+    ports:
+      - '${INGESTION_PORT:-4000}:4000'
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+
+  ingestion-worker:
+    build: { context: ., dockerfile: Dockerfile, target: ingestion }
+    command: ['node', 'apps/ingestion/dist/worker.js']
+    environment:
+      DATABASE_URL: postgres://ollive:ollive@postgres:5432/ollive
+      REDIS_URL: redis://redis:6379
+      REDACT_PII: ${REDACT_PII:-true}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+
+  web:
+    build: { context: ., dockerfile: Dockerfile, target: web }
+    environment:
+      DATABASE_URL: postgres://ollive:ollive@postgres:5432/ollive
+      INGESTION_URL: http://ingestion-api:4000
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+      DEFAULT_MODEL: ${DEFAULT_MODEL:-openai/gpt-4o-mini}
+    ports:
+      - '${WEB_PORT:-3000}:3000'
+    depends_on:
+      postgres:
+        condition: service_healthy
+      ingestion-api:
+        condition: service_started
+
+volumes:
+  pgdata:

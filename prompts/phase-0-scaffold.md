@@ -19,7 +19,7 @@ vitest, no secrets in code. Do the task, run Verify, report, then STOP.
    extending base, a stub entry point that builds.
 5. `.env.example` with `OPENROUTER_API_KEY`, `DATABASE_URL`, `REDIS_URL`, `INGESTION_URL`,
    `REDACT_PII`, ports.
-6. `infra/docker-compose.yml` — **postgres + redis only** (full stack added in Phase 6),
+6. `docker-compose.yml` — **postgres + redis only** (full stack added in Phase 6),
    with healthchecks.
 7. `.github/workflows/ci.yml` — install (frozen lockfile), lint, typecheck, build, test.
 8. `.gitignore` (node_modules, dist, .next, .env, .turbo) — and ignore the company's assignment
@@ -27,7 +27,7 @@ vitest, no secrets in code. Do the task, run Verify, report, then STOP.
 
 ## Verify
 - `pnpm install && pnpm build` exits green.
-- `docker compose -f infra/docker-compose.yml config` is valid.
+- `docker compose -f docker-compose.yml config` is valid.
 - `git log` shows an initial commit.
 
 **STOP and report.**

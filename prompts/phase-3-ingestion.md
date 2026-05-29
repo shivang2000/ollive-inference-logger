@@ -24,7 +24,7 @@ task, run Verify, report, STOP.
 (duplicate `request_id` → exactly one row), redaction applied to stored previews.
 
 ## Verify
-- Precondition: postgres + redis up (`docker compose -f infra/docker-compose.yml up -d`).
+- Precondition: postgres + redis up (`docker compose -f docker-compose.yml up -d`).
 - POST sample logs → rows appear in `inference_logs`.
 - Kill the worker mid-stream, restart → pending entries are reclaimed via `XAUTOCLAIM` (use a short
   `min-idle-time` for the test) and result in **no lost rows and no duplicate rows** (at-least-once

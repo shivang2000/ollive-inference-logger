@@ -28,7 +28,7 @@ report, STOP.
    untouched, no false positives on things like version numbers).
 
 ## Verify
-- Precondition: `docker compose -f infra/docker-compose.yml up -d postgres`.
+- Precondition: `docker compose -f docker-compose.yml up -d postgres`.
 - `pnpm --filter @ollive/db migrate` applies cleanly; tables + indexes exist.
 - `pnpm --filter @ollive/shared test` passes.
 - `pnpm build` green.

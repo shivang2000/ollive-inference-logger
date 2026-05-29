@@ -1,0 +1,14 @@
+**/node_modules
+**/dist
+**/.next
+**/.turbo
+.git
+.env
+.env.*
+*.log
+coverage
+infra/k8s
+docs
+prompts
+*.md
+Fullstack Engineer Assignment.*

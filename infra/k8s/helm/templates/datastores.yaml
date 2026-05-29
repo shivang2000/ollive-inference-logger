@@ -1,0 +1,77 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: ollive-postgres
+spec:
+  selector: { app: ollive-postgres }
+  ports:
+    - port: 5432
+      targetPort: 5432
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: ollive-postgres
+spec:
+  serviceName: ollive-postgres
+  replicas: 1
+  selector:
+    matchLabels: { app: ollive-postgres }
+  template:
+    metadata:
+      labels: { app: ollive-postgres }
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:17-alpine
+          env:
+            - { name: POSTGRES_USER, value: "{{ .Values.postgres.user }}" }
+            - { name: POSTGRES_PASSWORD, value: "{{ .Values.postgres.password }}" }
+            - { name: POSTGRES_DB, value: "{{ .Values.postgres.db }}" }
+          ports:
+            - containerPort: 5432
+          readinessProbe:
+            exec: { command: ["pg_isready", "-U", "{{ .Values.postgres.user }}"] }
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          volumeMounts:
+            - { name: data, mountPath: /var/lib/postgresql/data }
+  volumeClaimTemplates:
+    - metadata: { name: data }
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: "{{ .Values.postgres.storage }}"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ollive-redis
+spec:
+  selector: { app: ollive-redis }
+  ports:
+    - port: 6379
+      targetPort: 6379
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ollive-redis
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: ollive-redis }
+  template:
+    metadata:
+      labels: { app: ollive-redis }
+    spec:
+      containers:
+        - name: redis
+          image: redis:7-alpine
+          ports:
+            - containerPort: 6379
+          readinessProbe:
+            exec: { command: ["redis-cli", "ping"] }
+            initialDelaySeconds: 3
+            periodSeconds: 5

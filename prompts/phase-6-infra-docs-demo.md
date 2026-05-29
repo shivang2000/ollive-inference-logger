@@ -6,7 +6,7 @@ first; k8s is time-boxed and must not block submission.** Do the tasks in order,
 STOP.
 
 ## Task (priority order)
-1. **Must-have deploy — Docker Compose one-command.** Extend `infra/docker-compose.yml` to the full
+1. **Must-have deploy — Docker Compose one-command.** Extend `docker-compose.yml` to the full
    stack: postgres + redis + ingestion API + ingestion worker + web. Multi-stage Dockerfiles
    (Next.js `standalone` output; node for ingestion). Run DB migrations on startup. Healthchecks +
    `depends_on: condition: service_healthy`. Goal: a fresh clone runs with **one command**:
