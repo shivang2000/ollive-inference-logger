@@ -11,6 +11,12 @@ importers:
       '@eslint/js':
         specifier: ^9.17.0
         version: 9.39.4
+      '@ollive/db':
+        specifier: workspace:*
+        version: link:packages/db
+      '@ollive/shared':
+        specifier: workspace:*
+        version: link:packages/shared
       '@types/node':
         specifier: ^22.10.2
         version: 22.19.19
