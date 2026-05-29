@@ -1,0 +1,27 @@
+node_modules/
+dist/
+.next/
+out/
+build/
+coverage/
+*.tsbuildinfo
+
+# env / secrets
+.env
+.env.local
+.env.*.local
+
+# logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# os
+.DS_Store
+
+# turbo
+.turbo/
+
+# the company's assignment brief — not redistributed in the public repo
+Fullstack Engineer Assignment.docx
+Fullstack Engineer Assignment.pdf
