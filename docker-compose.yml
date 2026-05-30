@@ -79,7 +79,7 @@ services:
       DATABASE_URL: postgres://ollive:ollive@postgres:5432/ollive
       INGESTION_URL: http://ingestion-api:4000
       OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
-      DEFAULT_MODEL: ${DEFAULT_MODEL:-openai/gpt-4o-mini}
+      DEFAULT_MODEL: ${DEFAULT_MODEL:-openai/gpt-oss-120b:free}
     ports:
       - '${WEB_PORT:-3000}:3000'
     depends_on:

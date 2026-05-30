@@ -8,7 +8,7 @@ export const env = {
     return process.env.INGESTION_URL ?? 'http://localhost:4000';
   },
   get defaultModel() {
-    return process.env.DEFAULT_MODEL ?? 'openai/gpt-4o-mini';
+    return process.env.DEFAULT_MODEL ?? 'openai/gpt-oss-120b:free';
   },
 };
 

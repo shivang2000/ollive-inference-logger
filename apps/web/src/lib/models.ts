@@ -25,4 +25,7 @@ export const MODELS: ModelOption[] = [
   { id: 'qwen/qwen3-next-80b-a3b-instruct:free', label: 'Qwen3 Next 80B', provider: 'qwen', free: true },
 ];
 
-export const DEFAULT_MODEL_ID = MODELS[0]!.id;
+// Default to a free model so the app works with just an OpenRouter key (no credit needed).
+// gpt-oss-120b:free chosen empirically: top-capability among free models AND the most
+// reliable on the shared free tier (others frequently rate-limit). Paid models remain in the picker.
+export const DEFAULT_MODEL_ID = 'openai/gpt-oss-120b:free';

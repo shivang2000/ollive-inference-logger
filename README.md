@@ -33,6 +33,10 @@ cp .env.example .env          # then set OPENROUTER_API_KEY (https://openrouter.
 docker compose up --build
 ```
 
+> The default model is **free** (`openai/gpt-oss-120b:free`), so an OpenRouter key with **no
+> credit** works out of the box. Paid models (GPT-4o, Claude, Gemini, Qwen3.7 Max…) are in the
+> picker and need credit. The free tier is a shared/rate-limited pool — if it's busy, switch model.
+
 - Chat UI → http://localhost:3000/chat
 - Dashboards → http://localhost:3000/dashboard
 - Ingestion health → http://localhost:4000/healthz
