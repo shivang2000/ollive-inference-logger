@@ -33,13 +33,15 @@ spec:
             httpGet: { path: /healthz, port: {{ .Values.ingestion.port }} }
             initialDelaySeconds: 5
             periodSeconds: 10
+          resources:
+            {{- toYaml .Values.resources.ingestionApi | nindent 12 }}
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: ollive-ingestion-worker
 spec:
-  replicas: 1
+  # replicas omitted — the HPA owns this (see hpa.yaml)
   selector:
     matchLabels: { app: ollive-ingestion-worker }
   template:
@@ -53,6 +55,8 @@ spec:
           command: ["node", "apps/ingestion/dist/worker.js"]
           envFrom:
             - configMapRef: { name: ollive-config }
+          resources:
+            {{- toYaml .Values.resources.ingestionWorker | nindent 12 }}
 ---
 apiVersion: v1
 kind: Service
@@ -69,7 +73,7 @@ kind: Deployment
 metadata:
   name: ollive-web
 spec:
-  replicas: 1
+  # replicas omitted — the HPA owns this (see hpa.yaml)
   selector:
     matchLabels: { app: ollive-web }
   template:
@@ -89,3 +93,5 @@ spec:
             httpGet: { path: /, port: {{ .Values.web.port }} }
             initialDelaySeconds: 5
             periodSeconds: 10
+          resources:
+            {{- toYaml .Values.resources.web | nindent 12 }}

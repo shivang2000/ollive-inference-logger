@@ -1,4 +1,4 @@
-# Images are built locally and loaded into the kind/minikube node (see infra/k8s/README.md).
+# Images are built on the node and imported into containerd (see infra/k8s/README.md).
 image:
   ingestion: ollive-ingestion:latest
   web: ollive-web:latest
@@ -8,7 +8,8 @@ image:
 openrouterApiKey: ''
 
 redactPII: 'true'
-defaultModel: openai/gpt-4o-mini
+# Free model by default — runs with just an OpenRouter key, no credit.
+defaultModel: openai/gpt-oss-120b:free
 
 postgres:
   user: ollive
@@ -20,3 +21,28 @@ web:
   port: 3000
 ingestion:
   port: 4000
+
+# Resource requests/limits. Requests are required for the HPA to compute CPU utilisation;
+# limits keep pods bounded on a small node.
+resources:
+  web:
+    requests: { cpu: 100m, memory: 96Mi }
+    limits: { cpu: 500m, memory: 256Mi }
+  ingestionApi:
+    requests: { cpu: 50m, memory: 64Mi }
+    limits: { cpu: 300m, memory: 200Mi }
+  ingestionWorker:
+    requests: { cpu: 100m, memory: 80Mi }
+    limits: { cpu: 500m, memory: 200Mi }
+
+# Horizontal Pod Autoscaling (needs metrics-server — bundled with k3s).
+autoscaling:
+  enabled: true
+  web:
+    minReplicas: 1
+    maxReplicas: 3
+    targetCPUUtilizationPercentage: 60
+  worker:
+    minReplicas: 1
+    maxReplicas: 4
+    targetCPUUtilizationPercentage: 60
