@@ -206,11 +206,20 @@ export default function ChatApp() {
               onChange={(e) => setModel(e.target.value)}
               className="rounded-md border border-neutral-300 bg-transparent px-2 py-1 text-sm dark:border-neutral-700"
             >
-              {MODELS.map((m) => (
-                <option key={m.id} value={m.id}>
-                  {m.label}
-                </option>
-              ))}
+              <optgroup label="Paid">
+                {MODELS.filter((m) => !m.free).map((m) => (
+                  <option key={m.id} value={m.id}>
+                    {m.label}
+                  </option>
+                ))}
+              </optgroup>
+              <optgroup label="Free">
+                {MODELS.filter((m) => m.free).map((m) => (
+                  <option key={m.id} value={m.id}>
+                    {m.label} (free)
+                  </option>
+                ))}
+              </optgroup>
             </select>
           </div>
           <div className="flex gap-2">
