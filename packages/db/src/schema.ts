@@ -56,6 +56,8 @@ export const inferenceLogs = pgTable(
       onDelete: 'set null',
     }),
     messageId: uuid('message_id').references(() => messages.id, { onDelete: 'set null' }),
+    // Broader than conversation: a client/browser session id (the SDK accepts it per call).
+    sessionId: text('session_id'),
     model: text('model').notNull(),
     provider: text('provider').notNull(),
     status: inferenceStatus('status').notNull(),

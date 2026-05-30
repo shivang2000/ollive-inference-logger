@@ -3,7 +3,6 @@ import {
   addMessage,
   contextWindow,
   createConversation,
-  linkLogToMessage,
   setConversationTitleIfEmpty,
 } from '@/lib/conversations';
 import { DEFAULT_MODEL_ID } from '@/lib/models';
@@ -15,6 +14,7 @@ interface ChatRequest {
   conversationId?: string;
   content: string;
   model?: string;
+  sessionId?: string;
 }
 
 function sse(event: string | null, data: unknown): Uint8Array {
@@ -50,6 +50,7 @@ export async function POST(req: Request): Promise<Response> {
     messages,
     requestId,
     conversationId,
+    sessionId: body.sessionId,
     model,
     stream: true,
     signal: req.signal,
@@ -76,14 +77,14 @@ export async function POST(req: Request): Promise<Response> {
 
       const outcome = await result.completion;
       if (outcome.text) {
-        const assistant = await addMessage(
+        // The worker links this log → message by request_id; no web-side UPDATE needed.
+        await addMessage(
           conversationId,
           'assistant',
           outcome.text,
           requestId,
           outcome.completionTokens ?? undefined,
         );
-        await linkLogToMessage(requestId, assistant.id);
       }
       safeEnqueue(sse('done', { status: outcome.status, latencyMs: outcome.latencyMs }));
       controller.close();

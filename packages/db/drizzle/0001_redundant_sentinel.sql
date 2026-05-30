@@ -1,0 +1,1 @@
+ALTER TABLE "inference_logs" ADD COLUMN "session_id" text;

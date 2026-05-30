@@ -35,6 +35,16 @@ export default function ChatApp() {
   const [streaming, setStreaming] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
+  const sessionIdRef = useRef<string>('');
+
+  useEffect(() => {
+    let s = localStorage.getItem('ollive_session');
+    if (!s) {
+      s = crypto.randomUUID();
+      localStorage.setItem('ollive_session', s);
+    }
+    sessionIdRef.current = s;
+  }, []);
 
   const refreshConversations = useCallback(async () => {
     const res = await fetch('/api/conversations');
@@ -97,7 +107,12 @@ export default function ChatApp() {
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ conversationId: activeId, content, model }),
+        body: JSON.stringify({
+          conversationId: activeId,
+          content,
+          model,
+          sessionId: sessionIdRef.current || undefined,
+        }),
         signal: controller.signal,
       });
       if (!res.body) throw new Error('no stream');

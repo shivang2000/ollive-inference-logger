@@ -1,5 +1,5 @@
-import { sql } from 'drizzle-orm';
-import { inferenceLogs, type Db, type NewInferenceLog } from '@ollive/db';
+import { and, eq, sql } from 'drizzle-orm';
+import { inferenceLogs, messages, type Db, type NewInferenceLog } from '@ollive/db';
 import { redactIfEnabled, type InferenceLogInput } from '@ollive/shared';
 
 /** Map a validated wire payload to a DB row, redacting previews if enabled. */
@@ -8,6 +8,7 @@ export function toRow(log: InferenceLogInput): NewInferenceLog {
     requestId: log.requestId,
     conversationId: log.conversationId ?? null,
     messageId: log.messageId ?? null,
+    sessionId: log.sessionId ?? null,
     model: log.model,
     provider: log.provider,
     status: log.status,
@@ -32,6 +33,19 @@ export function toRow(log: InferenceLogInput): NewInferenceLog {
  */
 export async function upsertLog(db: Db, log: InferenceLogInput): Promise<void> {
   const row = toRow(log);
+
+  // Resolve message_id by the shared request_id. The web server persists the assistant message
+  // synchronously, so by the time this async log is processed the row usually exists — a reliable
+  // way to link log → message without a racy web-side UPDATE.
+  if (!row.messageId) {
+    const [m] = await db
+      .select({ id: messages.id })
+      .from(messages)
+      .where(and(eq(messages.requestId, log.requestId), eq(messages.role, 'assistant')))
+      .limit(1);
+    if (m) row.messageId = m.id;
+  }
+
   await db
     .insert(inferenceLogs)
     .values(row)
