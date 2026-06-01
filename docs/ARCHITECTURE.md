@@ -7,7 +7,7 @@ flowchart LR
   U[User] -->|chat| WEB[Next.js web<br/>chat UI + dashboards]
   WEB -->|POST /api/chat SSE| SRV[Next.js server route]
   SRV -->|persist user+assistant msgs| PG[(Postgres)]
-  SRV -->|olliveSDK.chat requestId| SDK[@ollive/sdk]
+  SRV -->|olliveSDK.chat requestId| SDK["@ollive/sdk"]
   SDK -->|stream tokens| WEB
   SDK -->|OpenRouter call| OR[(OpenRouter<br/>multi-provider)]
   SDK -.->|buffered, non-blocking<br/>POST /v1/logs| ING[Fastify ingestion API]
